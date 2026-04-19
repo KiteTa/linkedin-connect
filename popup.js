@@ -3,7 +3,6 @@ const statusEl = document.getElementById('status');
 const logEl = document.getElementById('log');
 const msgEl = document.getElementById('connectMsg');
 
-// add log
 function addLog(text) {
   logEl.style.display = 'block';
   const line = document.createElement('div');
@@ -15,19 +14,33 @@ function addLog(text) {
 startBtn.addEventListener('click', () => {
   const msg = msgEl.value.trim();
   if (!msg) {
-    statusEl.textContent = '!Please first input some message';
+    statusEl.textContent = '⚠️ 请先输入消息';
     return;
   }
-  statusEl.textContent = 'Going through the page...';
+
+  statusEl.textContent = '🔍 处理第一个人...';
+
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-    chrome.tabs.sendMessage(tabs[0].id, { action: 'scan' }, (response) => {
-      if (chrome.runtime.lastError) {
-        statusEl.textContent = '错误：请刷新 LinkedIn 页面';
-        addLog('无法连接到页面，请刷新后重试');
-        return;
-      }
-      statusEl.textContent = `找到 ${response.count} 个 Connect 按钮`;
-      addLog(`扫描完成，找到 ${response.count} 个按钮`);
-    });
+    chrome.tabs.sendMessage(
+      tabs[0].id,
+      {
+        action: 'connectOne',
+        message: msg,
+      },
+      (response) => {
+        if (chrome.runtime.lastError) {
+          statusEl.textContent = '❌ 请刷新 LinkedIn 页面';
+          return;
+        }
+
+        if (response.success) {
+          statusEl.textContent = '✅ 成功发送第一个';
+          addLog('✓ 发送成功');
+        } else {
+          statusEl.textContent = '❌ 失败：' + response.reason;
+          addLog('✗ 失败：' + response.reason);
+        }
+      },
+    );
   });
 });
