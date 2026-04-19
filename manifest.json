@@ -1,0 +1,11 @@
+{
+  "manifest_version": 3,
+  "name": "LinkedIn Auto Connect",
+  "version": "1.0",
+  "description": "批量发送 LinkedIn 连接请求",
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "permissions": ["activeTab", "scripting", "storage"],
+  "host_permissions": ["https://www.linkedin.com/*"]
+}
