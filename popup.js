@@ -18,7 +18,16 @@ startBtn.addEventListener('click', () => {
     statusEl.textContent = '!Please first input some message';
     return;
   }
-  statusEl.textContent = 'Work Start...';
-  addLog('按钮被点击了，消息是：' + msg);
-  addLog('（content.js 还没连接，下一步做）');
+  statusEl.textContent = 'Going through the page...';
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    chrome.tabs.sendMessage(tabs[0].id, { action: 'scan' }, (response) => {
+      if (chrome.runtime.lastError) {
+        statusEl.textContent = '错误：请刷新 LinkedIn 页面';
+        addLog('无法连接到页面，请刷新后重试');
+        return;
+      }
+      statusEl.textContent = `找到 ${response.count} 个 Connect 按钮`;
+      addLog(`扫描完成，找到 ${response.count} 个按钮`);
+    });
+  });
 });
