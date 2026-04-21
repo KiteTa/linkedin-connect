@@ -44,21 +44,43 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-function findConnectButtons() {
+function findPeople() {
   const allButtons = document.querySelectorAll('button');
-  const connectButtons = [];
+  const people = [];
+
   allButtons.forEach((btn) => {
-    if (btn.innerText.trim() === 'Connect') {
-      connectButtons.push(btn);
-    }
+    if (btn.innerText.trim() !== 'Connect') return;
+
+    const card =
+      btn.closest('li') ||
+      btn.closest('.entity-result__item') ||
+      btn.closest('section');
+    if (!card) return;
+
+    const name =
+      card.querySelector('.artdeco-entity-lockup__title')?.innerText.trim() ||
+      'Unknown';
+    const title =
+      card
+        .querySelector('.artdeco-entity-lockup__subtitle')
+        ?.innerText.trim() || '';
+
+    people.push({ button: btn, name, title });
   });
-  return connectButtons;
+
+  return people;
 }
 
-async function connectOne(button, message) {
+async function connectOne(person, messageTemplate) {
+  // 把 {name} 替换成真实名字的 first name
+  const firstName = person.name.split(' ')[0];
+  const message = messageTemplate
+    .replace('{name}', firstName)
+    .replace('{title}', person.title);
+
   try {
-    button.click();
-    console.log('点了 Connect 按钮');
+    person.button.click();
+    console.log('点击 Connect 按钮');
 
     await waitFor('.artdeco-modal.send-invite');
     console.log('Modal 出现了');
@@ -83,7 +105,7 @@ async function connectOne(button, message) {
     console.log('填入消息：', message);
     await sleep(500);
 
-    const sendBtn = qs('button[aria-label="Send now"]');
+    const sendBtn = qs('button[aria-label="Send invitation"]');
     if (!sendBtn) {
       return { success: false, reason: '没有 Send 按钮' };
     }
@@ -103,18 +125,18 @@ async function connectOne(button, message) {
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'scan') {
-    const buttons = findConnectButtons();
-    console.log('找到按钮数量：', buttons.length);
-    sendResponse({ count: buttons.length });
+    const people = findPeople();
+    console.log('找到人数：', people.length);
+    sendResponse({ count: people.length });
   }
 
   if (message.action === 'connectOne') {
-    const buttons = findConnectButtons();
-    if (buttons.length === 0) {
+    const people = findPeople();
+    if (people.length === 0) {
       sendResponse({ success: false, reason: '没有找到按钮' });
       return;
     }
-    connectOne(buttons[0], message.message).then((result) => {
+    connectOne(people[0], message.message).then((result) => {
       sendResponse(result);
     });
     return true;
