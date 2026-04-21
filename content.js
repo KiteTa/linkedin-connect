@@ -73,10 +73,11 @@ function findPeople() {
 
 async function connectOne(person, messageTemplate) {
   // 把 {name} 替换成真实名字的 first name
-  const firstName = person.name.split(' ')[0];
+  const firstName = person.name !== 'Unknown' ? person.name.split(' ')[0] : '';
+  const title = person.title || '';
   const message = messageTemplate
     .replace('{name}', firstName)
-    .replace('{title}', person.title);
+    .replace('{title}', title);
 
   try {
     person.button.click();
