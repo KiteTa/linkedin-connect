@@ -44,31 +44,39 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-function findPeople() {
-  const allButtons = document.querySelectorAll('button');
+function findPeopleFromCompanyPage() {
   const people = [];
-
-  allButtons.forEach((btn) => {
+  document.querySelectorAll('button').forEach((btn) => {
     if (btn.innerText.trim() !== 'Connect') return;
-
-    const card =
-      btn.closest('li') ||
-      btn.closest('.entity-result__item') ||
-      btn.closest('section');
+    const card = btn.closest('li') || btn.closest('section') || btn.closest('.artdeco-card');
     if (!card) return;
-
-    const name =
-      card.querySelector('.artdeco-entity-lockup__title')?.innerText.trim() ||
-      'Unknown';
-    const title =
-      card
-        .querySelector('.artdeco-entity-lockup__subtitle')
-        ?.innerText.trim() || '';
-
+    const name = card.querySelector('.artdeco-entity-lockup__title')?.innerText.trim() || 'Unknown';
+    const title = card.querySelector('.artdeco-entity-lockup__subtitle')?.innerText.trim() || '';
     people.push({ button: btn, name, title });
   });
-
   return people;
+}
+
+function findPeopleFromSearchPage() {
+  const people = [];
+  document.querySelectorAll('a[aria-label*="to connect"]').forEach((link) => {
+    const ariaLabel = link.getAttribute('aria-label');
+    const name = ariaLabel.replace('Invite ', '').replace(' to connect', '').trim();
+    const card = link.closest('li') || link.closest('[data-view-name]');
+    const title = card?.querySelector('.entity-result__primary-subtitle')?.innerText.trim() || '';
+    people.push({ button: link, name, title });
+  });
+  return people;
+}
+
+function findPeople() {
+  const fromCompany = findPeopleFromCompanyPage();
+  if (fromCompany.length > 0) return fromCompany;
+
+  const fromSearch = findPeopleFromSearchPage();
+  if (fromSearch.length > 0) return fromSearch;
+
+  return [];
 }
 
 async function connectOne(person, messageTemplate) {
