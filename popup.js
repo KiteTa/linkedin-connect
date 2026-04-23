@@ -1,5 +1,5 @@
 const startBtn = document.getElementById('startBtn');
-const statusEl = document.getElementById('status');
+const statusEl = document.getElementById('status-text');
 const logEl = document.getElementById('log');
 const editor = document.getElementById('editor');
 
@@ -121,11 +121,11 @@ function addLog(text) {
 startBtn.addEventListener('click', () => {
   const msg = getMessage().trim();
   if (!msg) {
-    statusEl.textContent = '⚠️ 请先输入消息';
+    statusEl.textContent = '⚠️ Please enter a message first';
     return;
   }
 
-  statusEl.textContent = '🔍 处理第一个人...';
+  statusEl.textContent = '🔍 Processing...';
 
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     chrome.tabs.sendMessage(
@@ -133,16 +133,16 @@ startBtn.addEventListener('click', () => {
       { action: 'connectOne', message: msg },
       (response) => {
         if (chrome.runtime.lastError) {
-          statusEl.textContent = '❌ 请刷新 LinkedIn 页面';
+          statusEl.textContent = '❌ Please refresh the LinkedIn page';
           return;
         }
 
         if (response.success) {
-          statusEl.textContent = '✅ 成功发送第一个';
-          addLog('✓ 发送成功');
+          statusEl.textContent = '✅ Successfully sent';
+          addLog('✓ Sent successfully');
         } else {
-          statusEl.textContent = '❌ 失败：' + response.reason;
-          addLog('✗ 失败：' + response.reason);
+          statusEl.textContent = '❌ Failed: ' + response.reason;
+          addLog('✗ Failed: ' + response.reason);
         }
       },
     );

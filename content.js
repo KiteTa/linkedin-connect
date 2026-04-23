@@ -1,12 +1,12 @@
 console.log('content.js loaded on LinkedIn!');
 
-// 穿透 Shadow DOM 查找元素
+// Query selector that pierces Shadow DOM
 function qs(selector) {
-  // 先找普通 DOM
+  // Try regular DOM first
   const el = document.querySelector(selector);
   if (el) return el;
 
-  // 再找 Shadow DOM
+  // Fall back to Shadow DOM
   const host = document.querySelector('#interop-outlet');
   return host?.shadowRoot?.querySelector(selector) || null;
 }
@@ -16,7 +16,7 @@ function waitFor(selector, timeout = 5000) {
     const el = qs(selector);
     if (el) return resolve(el);
 
-    // 同时监听普通 DOM 和 Shadow DOM
+    // Watch both regular DOM and Shadow DOM
     const targets = [document.body];
     const host = document.querySelector('#interop-outlet');
     if (host?.shadowRoot) targets.push(host.shadowRoot);
@@ -35,7 +35,7 @@ function waitFor(selector, timeout = 5000) {
 
     setTimeout(() => {
       observers.forEach((o) => o.disconnect());
-      reject(new Error(`Timeout: ${selector} 没有出现`));
+      reject(new Error(`Timeout: ${selector} did not appear`));
     }, timeout);
   });
 }
@@ -80,7 +80,7 @@ function findPeople() {
 }
 
 async function connectOne(person, messageTemplate) {
-  // 把 {name} 替换成真实名字的 first name
+  // Replace {name} with the person's first name
   const firstName = person.name !== 'Unknown' ? person.name.split(' ')[0] : '';
   const title = person.title || '';
   const message = messageTemplate
@@ -89,43 +89,43 @@ async function connectOne(person, messageTemplate) {
 
   try {
     person.button.click();
-    console.log('点击 Connect 按钮');
+    console.log('Clicked Connect button');
 
     await waitFor('.artdeco-modal.send-invite');
-    console.log('Modal 出现了');
+    console.log('Modal appeared');
     await sleep(500);
 
     const addNoteBtn = qs('button[aria-label="Add a note"]');
     if (!addNoteBtn) {
-      console.log('没有找到 Add a note');
+      console.log('Add a note button not found');
       const closeBtn = qs('button[aria-label="Dismiss"]');
       if (closeBtn) closeBtn.click();
-      return { success: false, reason: '没有 Add a note 按钮' };
+      return { success: false, reason: 'No Add a note button' };
     }
 
     addNoteBtn.click();
-    console.log('点了 Add a note');
+    console.log('Clicked Add a note');
     await sleep(500);
 
     const textarea = await waitFor('textarea[name="message"]');
     textarea.focus();
     textarea.value = message;
     textarea.dispatchEvent(new Event('input', { bubbles: true }));
-    console.log('填入消息：', message);
+    console.log('Filled in message:', message);
     await sleep(500);
 
     const sendBtn = qs('button[aria-label="Send invitation"]');
     if (!sendBtn) {
-      return { success: false, reason: '没有 Send 按钮' };
+      return { success: false, reason: 'No Send button' };
     }
 
     sendBtn.click();
-    console.log('点了 Send！');
+    console.log('Clicked Send!');
     await sleep(500);
 
     return { success: true };
   } catch (err) {
-    console.error('出错了：', err.message);
+    console.error('Error:', err.message);
     const closeBtn = qs('button[aria-label="Dismiss"]');
     if (closeBtn) closeBtn.click();
     return { success: false, reason: err.message };
@@ -135,14 +135,14 @@ async function connectOne(person, messageTemplate) {
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'scan') {
     const people = findPeople();
-    console.log('找到人数：', people.length);
+    console.log('People found:', people.length);
     sendResponse({ count: people.length });
   }
 
   if (message.action === 'connectOne') {
     const people = findPeople();
     if (people.length === 0) {
-      sendResponse({ success: false, reason: '没有找到按钮' });
+      sendResponse({ success: false, reason: 'No Connect buttons found' });
       return;
     }
     connectOne(people[0], message.message).then((result) => {
