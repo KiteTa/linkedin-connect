@@ -2,6 +2,25 @@ const startBtn = document.getElementById('startBtn');
 const statusEl = document.getElementById('status-text');
 const logEl = document.getElementById('log');
 const editor = document.getElementById('editor');
+const wordCountEl = document.getElementById('word-count');
+
+function countChars() {
+  let text = '';
+  editor.childNodes.forEach(node => {
+    if (node.nodeType === Node.TEXT_NODE) {
+      text += node.textContent;
+    } else if (node.classList?.contains('var-chip')) {
+      text += node.dataset.var === 'name' ? 'Name' : 'Title';
+    }
+  });
+  return text.length;
+}
+
+function updateWordCount() {
+  const count = countChars();
+  wordCountEl.textContent = count + ' / 300 characters';
+  wordCountEl.classList.toggle('warn', count > 300);
+}
 
 // Tab key: append placeholder content at end of editor
 editor.addEventListener('keydown', (e) => {
@@ -21,6 +40,7 @@ editor.addEventListener('keydown', (e) => {
   });
 
   editor.appendChild(frag);
+  updateWordCount();
 
   // Move cursor to end
   const range = document.createRange();
@@ -40,8 +60,18 @@ function createChip(variable) {
   return chip;
 }
 
+// Intercept paste to strip formatting and insert plain text only
+editor.addEventListener('paste', (e) => {
+  e.preventDefault();
+  const text = (e.clipboardData || window.clipboardData).getData('text/plain');
+  document.execCommand('insertText', false, text);
+  updateWordCount();
+});
+
 // Auto-replace {name} or {title} typed in the editor with chips
 editor.addEventListener('input', () => {
+  updateWordCount();
+
   const selection = window.getSelection();
   if (!selection.rangeCount) return;
   const range = selection.getRangeAt(0);
@@ -70,6 +100,7 @@ editor.addEventListener('input', () => {
   newRange.collapse(true);
   selection.removeAllRanges();
   selection.addRange(newRange);
+  updateWordCount();
 });
 
 // Insert a var-chip at the current cursor position inside #editor
@@ -90,10 +121,12 @@ document.querySelectorAll('.var-btn').forEach(btn => {
         range.collapse(true);
         selection.removeAllRanges();
         selection.addRange(range);
+        updateWordCount();
         return;
       }
     }
     editor.appendChild(chip);
+    updateWordCount();
   });
 });
 

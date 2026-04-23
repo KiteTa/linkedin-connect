@@ -76,6 +76,18 @@ h2 {
   user-select: none;
 }
 
+#word-count {
+  text-align: right;
+  font-size: 11px;
+  color: #999;
+  margin-top: 3px;
+}
+
+#word-count.warn {
+  color: #d9534f;
+  font-weight: 600;
+}
+
 button#startBtn {
   margin-top: 10px;
   width: 100%;
