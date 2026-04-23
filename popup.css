@@ -1,7 +1,7 @@
 body {
   width: 320px;
   padding: 16px;
-  font-family: sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 14px;
 }
 
@@ -96,10 +96,8 @@ button#startBtn:hover {
 #status {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 3px;
   margin-top: 10px;
-  font-size: 12px;
-  color: #555;
   min-height: 20px;
 }
 
@@ -109,12 +107,23 @@ button#startBtn:hover {
   flex-shrink: 0;
 }
 
+#status-text {
+  position: relative;
+  background: rgba(233, 233, 235, 0.55);
+  border-radius: 6px;
+  padding: 8px 12px 8px 14px;
+  font-size: 13px;
+  color: #000;
+  max-width: 200px;
+  z-index: 1;
+}
+
 #log {
   margin-top: 8px;
   max-height: 120px;
   overflow-y: auto;
   background: #f5f5f5;
-  border-radius: 6px;
+  border-radius: 12px;
   padding: 8px;
   font-size: 11px;
   color: #333;
